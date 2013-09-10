@@ -1,12 +1,12 @@
 ImageClassification_based_on_BOF
 ================================
 This is a comparision experiment of some feature coding method,including VQ + SPM, ScSPM and LLC.
-The whole flow mainly includs feature extracted, dictionary learning, feature coding and classfication.
-In this code, feature extracted and feature coding are on single image , and then save them to disk in a corresponding address.
+The whole flow mainly includes feature extracted, dictionary learning, feature coding and classfication.
+In this code, feature extracted and feature coding are on each single image , and then save them to disk in a corresponding address.
 when used in other stage, loading it. Seen details in the following.
 
-1. demo.m demonstrates the whole flow, modificating the value of conf.codemethod to be 'psix_coding', 'sc_coding', 'LLC_coding'
-makes 'VQ + SPM', 'ScSPM', 'LLC' running respectively. conf.numWords and conf.feature('dsift or phow') can also be modified.
+1. demo.m demonstrates the flow on the whole dataset, modificating the value of conf.codemethod to be 'psix_coding', 'sc_coding', 'LLC_coding'
+makes 'VQ + SPM', 'ScSPM', 'LLC' running respectively. conf.numWords and conf.feature('dsift' or 'phow') can also be modified.
 
 2. CalculatePhowDescriptor.m implements feature extracted of all images in the assigned dataset(Caltech101). 
 In this function, vl_phow() is used(Need to add vl_feat library, see http://www.vlfeat.org/).
@@ -25,3 +25,5 @@ by kmeans, which is implemented by vl_kmeans().
 vl_homkermap() is needed before classify, which implements a higher dimension nonlinear mapping.
 
 6. In each class, 30 or 15 images (which can be assigned by conf.numTrain)to be selected for training, and others for testing.
+
+7. classify.m is implemented for testing classification on single image.

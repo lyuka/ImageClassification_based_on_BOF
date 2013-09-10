@@ -9,7 +9,7 @@ numWords = size(model.vocab, 2);
 
 switch model.quantizer
   case 'vq'
-    [drop, binsa] = min(vl_alldist(model.vocab, single(feaSet.desc)), [], 1) ;    
+    [drop, binsa] = min(vl_alldist(model.vocab, single(feaSet.desc)), [], 1) ;  
   case 'kdtree'
     binsa = double(vl_kdtreequery(model.kdtree, model.vocab, ...
                                   single(feaSet.desc), ...

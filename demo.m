@@ -12,7 +12,7 @@ conf.svm.C = 10;
 conf.svm.biasMultiplier = 1;
 
 conf.feature = 'dsift';            % this value can be replace with 'phow'
-conf.codemethod = 'psix_code';       % this value can be replaced with 'psix_code' or 'LLC_code'
+conf.codemethod = 'LLC_code';       % this value can be assigned as 'psix_code' , 'sc_code' or 'LLC_code'
 
 switch conf.feature
     case 'dsift'
@@ -20,7 +20,7 @@ switch conf.feature
         patchSize = 3 * conf.phowOpts{2};
         gradSpacing = conf.phowOpts{4};
     case 'phow'
-        conf.phowOpts = {'Step', 3} ;
+        conf.phowOpts = {'Step', 6} ;
 end
 switch conf.codemethod
     case 'psix_code'
@@ -84,6 +84,9 @@ clear vocab;
 
 model.numSpatialX = [1 2 4];
 model.numSpatialY = [1 2 4];
+if length(model.numSpatialX) == 1
+    conf.codeDir = [conf.codeDir, '_single'];
+end
 % Calculate final image descriptor for the dataSet
 if ~exist(fullfile(conf.codeDir, 'airplanes'),'dir')
     tFeature_Coding_Start = tic;    
@@ -143,6 +146,7 @@ end
 
 % Traing linear svm and test its performance
 nRounds = 5;
+acc = zeros(database.nclass, nRounds);
 accuracy = zeros(nRounds, 1);
 for ii = 1:nRounds,
     fprintf('Round: %d...\n', ii);
@@ -183,16 +187,28 @@ for ii = 1:nRounds,
         load(database.code_path{selTest(jj)});
         scores = model.w' * final_code + model.b' ;
         [score, best] = max(scores) ;
-        result_label = [result_label, best];          
+        result_label = [result_label, best]; 
+        if best ~= database.label(selTest(jj))
+            destination_dir = fullfile(conf.dataDir, ['misClassify_by_', conf.codemethod, '_on_round_', num2str(ii)]);
+            if ~isdir(destination_dir)
+                mkdir(destination_dir)
+            end
+            [a, b , c] = fileparts(database.path{selTest(jj)});
+            label_id = database.label(selTest(jj));
+            file_name = [database.cname{label_id}, '_' ,b, '_to_', database.cname{best},'.jpg'];
+            destination_path = fullfile(destination_dir, file_name);
+            source_path = fullfile(conf.imgDir, conf.dataSet, database.cname{label_id},[b, '.jpg']);
+            copyfile(source_path, destination_path);
+        end
     end
-    acc = zeros(database.nclass, 1);
+    
     for ci = 1: database.nclass
         idx = find(database.label(selTest) == ci);
         len = length(idx);
-        acc(ci) = length(find(result_label(idx) == ci)) / len;
-        fprintf('Classification accuracy of %s (%d tested) is %.2f %% \n', database.cname{ci}, len, 100 * acc(ci));
+        acc(ci, ii) = length(find(result_label(idx) == ci)) / len;
+        fprintf('Classification accuracy of %s (%d tested) in Round %d is %.2f %% \n', database.cname{ci}, len, ii, 100 * acc(ci, ii));
     end
-    accuracy(ii) = mean(acc);
+    accuracy(ii) = mean(acc(:, ii));
     tSVM_Testing_Elapsed = toc(tSVM_Testing_Start);
     fprintf('Elapsed time in the testing svm classifier stage is: %.2f \n', tSVM_Testing_Elapsed);
 end
@@ -203,5 +219,8 @@ fprintf('Standard deviation: %.2f %%\n', 100 * std(accuracy));
 model_suffix = ['model_', conf.codemethod, '_codebook_', num2str(conf.numWords), '_', conf.feature,'.mat'];
 if strcmp(conf.feature, 'dsift')
     model_suffix = ['model_', conf.codemethod, '_codebook_', num2str(conf.numWords), '_', conf.feature, '_', num2str(patchSize), '_', num2str(gradSpacing), '.mat'];
+end
+if length(model.numSpatialX) == 1
+    model_suffix = ['model_single.mat'];
 end
 save(fullfile(conf.dataDir, model_suffix), 'model');

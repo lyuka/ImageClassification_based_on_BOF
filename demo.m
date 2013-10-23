@@ -16,8 +16,8 @@ conf.codemethod = 'LLC_code';       % this value can be assigned as 'psix_code' 
 
 switch conf.feature
     case 'dsift'
-        conf.phowOpts = {'Sizes', 5, 'Step', 6};      % the Sizes here used in vl_phow(), and its relation to patchsize sampled is : patchsize = 3 * Sizes
-        patchSize = 3 * conf.phowOpts{2};
+        conf.phowOpts = {'Sizes', 5, 'Step', 6};      % the Sizes here used in vl_phow(), and its relation to patchsize sampled is : patchsize = 4 * Sizes + 1
+        patchSize = 4 * conf.phowOpts{2} + 1;
         gradSpacing = conf.phowOpts{4};
     case 'phow'
         conf.phowOpts = {'Step', 6} ;
